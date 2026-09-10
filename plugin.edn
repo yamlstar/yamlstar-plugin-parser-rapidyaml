@@ -1,0 +1,6 @@
+{:abi 1
+ :api "parser"
+ :name "rapidyaml"
+ :version "0.1.0"
+ :kind "parser"
+ :event-format "yamlstar-events-binary-v1"}

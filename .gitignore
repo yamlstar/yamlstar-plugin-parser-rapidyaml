@@ -1,0 +1,12 @@
+.cache/
+/lib/
+dist/
+python/build/
+python/dist/
+python/*.egg-info/
+python/lib/*.egg-info/
+python/lib/*/lib/
+python/lib/*/plugin.edn
+python/lib/*/License
+__pycache__/
+python/lib/*/licenses/

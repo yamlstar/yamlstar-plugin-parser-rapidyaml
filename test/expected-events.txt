@@ -1,0 +1,17 @@
+# rapidyaml v0.16.0 integer-event handler, YAML test suite 6ad3d2c6.
+# These are tab-separation limitations in the underlying parser.
+# 6BCT: tabs separating block sequence and mapping indicators.
+6BCT rejected-valid
+# A2M4: tab-separated nested sequence parsed as a plain scalar.
+A2M4 event-mismatch
+# DC7X: trailing tabs and tabs separating a block value.
+DC7X rejected-valid
+# J3BT: tab before a literal block indicator.
+J3BT rejected-valid
+# K54U: document marker followed by a tab parsed as scalar text.
+K54U event-mismatch
+# Y79Y: tabs after block indicators are misclassified.
+Y79Y/004 accepted-invalid
+Y79Y/006 accepted-invalid
+Y79Y/008 accepted-invalid
+Y79Y/010 event-mismatch

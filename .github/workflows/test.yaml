@@ -1,0 +1,44 @@
+name: Test RapidYAML Plugin
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v5
+    - name: Test plugin and conformance
+      run: make test test-conformance fuzz
+    - name: Check release preview
+      run: |
+        version=$(perl -ne 'print "$1" if /:version "([^\"]+)"/' plugin.edn)
+        make release v="$version" d=1
+    - name: Build wheel
+      run: make wheel test-wheel
+    - name: Check out YAMLStar host
+      uses: actions/checkout@v5
+      with:
+        repository: yamlstar/yamlstar
+        ref: ${{ vars.YAMLSTAR_REF || 'parser-rapidyaml' }}
+        path: repos/yamlstar
+    - name: Build YAMLStar
+      run: make -C repos/yamlstar build-cli build-libyamlstar
+    - name: Test CLI
+      run: |
+        YAMLSTAR_TEST_BINARY_PLUGIN="$PWD/lib" YAMLSTAR_TEST_PARSER=rapidyaml \
+          make -C repos/yamlstar test-unit test=test/shared-parser.t
+    - name: Test Python wheel discovery
+      run: |
+        PYTHONPATH="$PWD/repos/yamlstar/python/lib" \
+          YAMLSTAR_TEST_SUITE_DIR="$PWD/.cache/yaml-test-suite" \
+          .cache/wheel-test/bin/python python/test_integration.py

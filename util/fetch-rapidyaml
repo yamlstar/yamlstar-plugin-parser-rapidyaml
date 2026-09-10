@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+commit=${1:?Expected pinned rapidyaml commit}
+directory=.cache/rapidyaml
+if [[ ! -d $directory/.git ]]; then
+  git clone --no-checkout https://github.com/biojppm/rapidyaml "$directory"
+fi
+git -C "$directory" checkout --detach "$commit"
+test "$(git -C "$directory" rev-parse HEAD)" = "$commit"
+# This release vendors c4core and has no submodules.
+test ! -f "$directory/.gitmodules"
+touch "$directory/.pinned"
