@@ -54,8 +54,8 @@ WHEEL ?= $(WHEEL-FILE)
 WHEEL-TEST-VENV := .cache/wheel-test
 WHEEL-TEST-PYTHON := $(WHEEL-TEST-VENV)/bin/python
 
-RELEASE-ARCH := $(if $(IS-INTEL),x64,\
-  $(if $(IS-LINUX),aarch64,arm64))
+RELEASE-ARCH := $(strip $(if $(IS-INTEL),x64,\
+  $(if $(IS-LINUX),aarch64,arm64)))
 RELEASE_PLATFORM ?= $(OS-NAME)-$(RELEASE-ARCH)
 RELEASE_NAME := $(PLUGIN)-$(VERSION)-$(RELEASE_PLATFORM)
 WHEEL-STAGE := $(WHEEL-CACHE)/$(RELEASE_NAME)/.staged
