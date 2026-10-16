@@ -23,12 +23,17 @@ jobs:
       run: |
         version=$(perl -ne 'print "$1" if /:version "([^\"]+)"/' plugin.edn)
         make release v="$version" d=1
+    - name: Install macOS archive dependencies
+      if: runner.os == 'macOS'
+      run: |
+        brew list gnu-tar >/dev/null 2>&1 || brew install gnu-tar
+        brew list xz >/dev/null 2>&1 || brew install xz
     - name: Build wheel
       run: make wheel test-wheel
     - name: Check out YAMLStar host
       uses: actions/checkout@v5
       with:
-        repository: yamlstar/yamlstar
+        repository: yaml/yamlstar
         ref: ${{ vars.YAMLSTAR_REF || 'parser-rapidyaml' }}
         path: repos/yamlstar
     - name: Build YAMLStar
