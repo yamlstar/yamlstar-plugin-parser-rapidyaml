@@ -10,7 +10,7 @@ perl=${PERL:?PERL must name the project-managed Perl}
 project_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 archive_dir=$(cd "$(dirname "$archive")" && pwd)
 archive="$archive_dir/$(basename "$archive")"
-release_name="yamlstar-plugin-rapidyaml-$version-$platform"
+release_name="yamlstar-plugin-parser-rapidyaml-$version-$platform"
 work_dir=$(mktemp -d)
 trap 'rm -rf "$work_dir"' EXIT
 
@@ -33,7 +33,7 @@ case $platform in
 esac
 
 library_dir="$release_dir/lib"
-library="$library_dir/libyamlstar-plugin-rapidyaml.$extension"
+library="$library_dir/libyamlstar-plugin-parser-rapidyaml.$extension"
 manifest="$release_dir/share/yamlstar/plugins/rapidyaml/plugin.edn"
 
 test -f "$library"

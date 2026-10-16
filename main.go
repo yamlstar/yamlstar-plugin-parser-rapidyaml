@@ -37,26 +37,21 @@ func quoteEDN(value string) string {
 	return string(text)
 }
 
-func errorEDN(kind string, err error) string {
-	return "{:error {:type " + quoteEDN(kind) +
-		" :message " + quoteEDN(err.Error()) + " :data {}}}"
+//export yamlstar_plugin_v2_abi
+func yamlstar_plugin_v2_abi() C.uint64_t {
+	return 2
 }
 
-//export yamlstar_plugin_v1_abi
-func yamlstar_plugin_v1_abi() C.uint64_t {
-	return 1
-}
-
-//export yamlstar_plugin_v1_manifest
-func yamlstar_plugin_v1_manifest(
+//export yamlstar_plugin_v2_manifest
+func yamlstar_plugin_v2_manifest(
 	output **C.uint8_t,
 	length *C.size_t,
 ) C.int32_t {
 	return writeOutput(manifest, output, length)
 }
 
-//export yamlstar_plugin_v1_free
-func yamlstar_plugin_v1_free(output *C.uint8_t) {
+//export yamlstar_plugin_v2_free
+func yamlstar_plugin_v2_free(output *C.uint8_t) {
 	C.free(unsafe.Pointer(output))
 }
 

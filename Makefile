@@ -32,7 +32,7 @@ PYTHON-VENV-SETUP := \
 
 VERSION := 0.1.0
 MODULE := github.com/yamlstar/yamlstar-plugin-parser-rapidyaml
-PLUGIN := yamlstar-plugin-rapidyaml
+PLUGIN := yamlstar-plugin-parser-rapidyaml
 LIB-NAME := lib$(PLUGIN).$(SO)
 LIB := lib/$(LIB-NAME)
 RELEASE_LIB_DIR := .cache/release/lib
@@ -293,9 +293,6 @@ $(WHEEL-STAGE): $(ARCHIVE) plugin.edn License python/setup.py \
 	cp -p plugin.edn $(WHEEL-PACKAGE-DIR)/
 	cp -p License $(WHEEL-PACKAGE-DIR)/
 	cp -R licenses $(WHEEL-PACKAGE-DIR)/
-	mkdir -p $(WHEEL-LIB-DIR)/yamlstar/plugins/rapidyaml/$(VERSION)
-	cp -p $(WHEEL-LIB-DIR)/$(LIB-NAME) \
-	  $(WHEEL-LIB-DIR)/yamlstar/plugins/rapidyaml/$(VERSION)/
 	touch $@
 
 $(WHEEL-FILE): $(WHEEL-STAGE) $(PYTHON-VENV)

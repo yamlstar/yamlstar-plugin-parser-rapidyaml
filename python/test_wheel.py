@@ -44,15 +44,13 @@ def main():
   assert distribution.version == expected_version
   entry_points = [
     item for item in plugin_entry_points()
-    if item.name == 'rapidyaml'
+    if item.name == 'parser-rapidyaml'
   ]
   assert len(entry_points) == 1
   assert entry_points[0].load()() == plugin.library_dir()
   assert Path(plugin.library_path()).is_file()
   assert Path(plugin.manifest_path()).is_file()
   assert checksum(plugin.library_path()) == checksum(source_library)
-  pinned = Path(plugin.library_dir()) / 'yamlstar/plugins/rapidyaml' / expected_version
-  assert checksum(pinned / Path(plugin.library_path()).name) == checksum(source_library)
   print(plugin.library_dir())
 
 

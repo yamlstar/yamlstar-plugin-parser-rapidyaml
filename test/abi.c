@@ -21,7 +21,7 @@ typedef int32_t (*parse_fn)(const uint8_t *, size_t, const uint8_t *,
 typedef void (*free_fn)(uint8_t *);
 
 struct api {
-    parse_fn parse_binary;
+    parse_fn transform;
     free_fn free_output;
 };
 
@@ -49,15 +49,15 @@ static char *parse(struct api *api, const char *input, int32_t *status) {
     static const char options[] = "{}";
     uint8_t *output = NULL;
     size_t length = 0;
-    *status = api->parse_binary(
+    *status = api->transform(
         (const uint8_t *) input,
         strlen(input),
         (const uint8_t *) options,
         strlen(options),
         &output,
         &length);
-    if (*status == 0 && (length < 16 || memcmp(output, "YEBP", 4))) {
-        fail("invalid binary event response");
+    if (*status == 0 && (length < 16 || memcmp(output, "[{", 2))) {
+        fail("invalid EDN event response");
     }
     return take_output(api, output, length);
 }
@@ -67,16 +67,16 @@ static void *parse_repeatedly(void *argument) {
     for (int attempt = 0; attempt < 10; attempt++) {
         int32_t status;
         char *output = parse(api, "value: true # comment\n", &status);
-        if (status != 0 || memcmp(output, "YEBP", 4) != 0) {
+        if (status != 0 || memcmp(output, "[{", 2) != 0) {
             fail("concurrent parse failed");
         }
         free(output);
         uint8_t *binary = NULL;
         size_t length = 0;
-        status = api->parse_binary((const uint8_t *) "a: b", 4,
+        status = api->transform((const uint8_t *) "a: b", 4,
                                    (const uint8_t *) "{}", 2,
                                    &binary, &length);
-        if (status != 0 || length < 16 || memcmp(binary, "YEBP", 4)) {
+        if (status != 0 || length < 16 || memcmp(binary, "[{", 2)) {
             fail("concurrent binary parse failed");
         }
         api->free_output(binary);
@@ -91,32 +91,32 @@ int main(void) {
     }
     char path[4096];
     snprintf(path, sizeof(path),
-             "%s/libyamlstar-plugin-rapidyaml.%s",
+             "%s/libyamlstar-plugin-parser-rapidyaml.%s",
              directory, PLUGIN_EXTENSION);
     void *handle = dlopen(path, RTLD_NOW | RTLD_LOCAL);
     if (handle == NULL) {
         fail(dlerror());
     }
 
-    abi_fn abi = (abi_fn) dlsym(handle, "yamlstar_plugin_v1_abi");
+    abi_fn abi = (abi_fn) dlsym(handle, "yamlstar_plugin_v2_abi");
     manifest_fn manifest = (manifest_fn) dlsym(
-        handle, "yamlstar_plugin_v1_manifest");
+        handle, "yamlstar_plugin_v2_manifest");
     struct api api = {
-        .parse_binary = (parse_fn) dlsym(
-            handle, "yamlstar_plugin_v1_parse_binary"),
+        .transform = (parse_fn) dlsym(
+            handle, "yamlstar_plugin_v2_transform"),
         .free_output = (free_fn) dlsym(
-            handle, "yamlstar_plugin_v1_free"),
+            handle, "yamlstar_plugin_v2_free"),
     };
     if (abi == NULL || manifest == NULL
-        || api.parse_binary == NULL
+        || api.transform == NULL
         || api.free_output == NULL) {
         fail("plugin ABI symbol is missing");
     }
-    if (dlsym(handle, "yamlstar_plugin_v1_parse") != NULL) {
-        fail("plugin still exports EDN event parsing");
+    if (dlsym(handle, "yamlstar_plugin_v1_parse_binary") != NULL) {
+        fail("plugin still exports ABI v1 parsing");
     }
-    if (abi() != 1) {
-        fail("plugin ABI version is not 1");
+    if (abi() != 2) {
+        fail("plugin ABI version is not 2");
     }
 
     uint8_t *manifest_output = NULL;
@@ -141,7 +141,7 @@ int main(void) {
         "a: true// comment\nb: foo// not a comment\n"
         "c: foo // comment\nd: http://not-a-comment.com\n",
         &status);
-    if (status != 0 || memcmp(output, "YEBP", 4) != 0) {
+    if (status != 0 || memcmp(output, "[{", 2) != 0) {
         fail("parse result is incorrect");
     }
     free(output);
@@ -154,24 +154,24 @@ int main(void) {
 
     uint8_t *bad_output = NULL;
     size_t bad_length = 0;
-    status = api.parse_binary(NULL, 1, NULL, 0, &bad_output, &bad_length);
+    status = api.transform(NULL, 1, NULL, 0, &bad_output, &bad_length);
     if (status != 2) {
         fail("binary ABI accepted a nil input with nonzero length");
     }
     api.free_output(bad_output);
 
     api.free_output(NULL);
-    status = api.parse_binary(NULL, 0, NULL, 0, &bad_output, &bad_length);
+    status = api.transform(NULL, 0, NULL, 0, &bad_output, &bad_length);
     if (status != 0 || bad_length < 16) {
         fail("empty input failed");
     }
     api.free_output(bad_output);
-    status = api.parse_binary(NULL, 0, NULL, 0, NULL, &bad_length);
+    status = api.transform(NULL, 0, NULL, 0, NULL, &bad_length);
     if (status != 2) {
         fail("null output pointer accepted");
     }
     static const char invalid[] = "[untermi\rated";
-    status = api.parse_binary((const uint8_t *)invalid, sizeof(invalid) - 1,
+    status = api.transform((const uint8_t *)invalid, sizeof(invalid) - 1,
                              NULL, 0, &bad_output, &bad_length);
     if (status == 0 || bad_length == 0) {
         fail("assertion regression did not return an error");

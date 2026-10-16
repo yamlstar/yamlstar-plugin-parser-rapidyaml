@@ -1,6 +1,5 @@
 """Run with PYTHONPATH pointing at the YAMLStar Python binding under test."""
 
-from importlib import metadata
 import json
 import os
 from pathlib import Path
@@ -10,10 +9,9 @@ import yamlstar
 def main():
   expected = {'a': [1, 2, 3], 'b': 'hello'}
   text = 'a: &items [1, 2, 3]\nb: hello\n'
-  version = metadata.version("yamlstar-plugin-parser-rapidyaml")
   instances = [
     yamlstar.YAMLStar(yamlstar.Options().plugin(yamlstar.parser(name)))
-    for name in ('go-yaml', 'rapidyaml', 'rapidyaml@' + version)
+    for name in ('go-yaml', 'rapidyaml')
   ]
   for instance in instances:
     assert instance.load(text) == expected
@@ -26,6 +24,7 @@ def main():
     else:
       raise AssertionError('accepted invalid YAML')
     assert instance.load('ok: true') == {'ok': True}
+    assert instance.load(r'"ab\n\t\"\\λ"') == 'ab\n\t"\\λ'
   suite = os.environ.get('YAMLSTAR_TEST_SUITE_DIR')
   if suite:
     count = 0
@@ -52,7 +51,7 @@ def main():
       assert actual == expected, (case, actual, expected)
       count += 1
     print('Verified %d YAML test-suite loaded results' % count)
-  print('Python parser integration passed, including pinned wheel discovery')
+  print('Python parser integration passed, including wheel discovery')
 
 
 if __name__ == '__main__':

@@ -11,8 +11,8 @@ import (
 	"unsafe"
 )
 
-//export yamlstar_plugin_v1_parse_binary
-func yamlstar_plugin_v1_parse_binary(
+//export yamlstar_plugin_v2_transform
+func yamlstar_plugin_v2_transform(
 	input *C.uint8_t, inputLength C.size_t,
 	options *C.uint8_t, optionsLength C.size_t,
 	output **C.uint8_t, outputLength *C.size_t,
@@ -24,7 +24,7 @@ func yamlstar_plugin_v1_parse_binary(
 	*outputLength = 0
 	defer func() {
 		if value := recover(); value != nil {
-			_ = writeOutput(errorEDN("internal", fmt.Errorf("%v", value)), output, outputLength)
+			_ = writeOutput(fmt.Sprint(value), output, outputLength)
 			status = 2
 		}
 	}()
@@ -32,19 +32,19 @@ func yamlstar_plugin_v1_parse_binary(
 	if (input == nil && inputLength != 0) ||
 		(options == nil && optionsLength != 0) ||
 		uint64(inputLength) > maxLength || uint64(optionsLength) > maxLength {
-		_ = writeOutput(errorEDN("abi", fmt.Errorf("invalid input buffer")), output, outputLength)
+		_ = writeOutput("invalid input buffer", output, outputLength)
 		return 2
 	}
 	// Length-aware copies avoid C.int truncation and never retain caller memory.
 	inputText := string(unsafe.Slice((*byte)(unsafe.Pointer(input)), int(inputLength)))
 	optionsText := string(unsafe.Slice((*byte)(unsafe.Pointer(options)), int(optionsLength)))
-	result, err := parseBinary(inputText, optionsText)
+	result, err := parseEDN(inputText, optionsText)
 	if err != nil {
 		if _, internal := err.(internalError); internal {
-			_ = writeOutput(errorEDN("internal", err), output, outputLength)
+			_ = writeOutput(err.Error(), output, outputLength)
 			return 2
 		}
-		_ = writeOutput(errorEDN("parse", err), output, outputLength)
+		_ = writeOutput(err.Error(), output, outputLength)
 		return 1
 	}
 	return writeBytes(result, output, outputLength)

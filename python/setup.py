@@ -39,13 +39,13 @@ setup(
   packages=['yamlstar_plugin_parser_rapidyaml'],
   package_dir={'': 'lib'},
   package_data={
-    'yamlstar_plugin_parser_rapidyaml': ['License', 'lib/*', 'lib/yamlstar/plugins/rapidyaml/*/*', 'licenses/*', 'plugin.edn'],
+    'yamlstar_plugin_parser_rapidyaml': ['License', 'lib/*', 'licenses/*', 'plugin.edn'],
   },
   include_package_data=False,
   python_requires='>=3.6, <4',
   entry_points={
     'yamlstar.plugins': [
-      'rapidyaml = yamlstar_plugin_parser_rapidyaml:library_dir',
+      'parser-rapidyaml = yamlstar_plugin_parser_rapidyaml:library_dir',
     ],
   },
   cmdclass={'bdist_wheel': PlatformWheel},

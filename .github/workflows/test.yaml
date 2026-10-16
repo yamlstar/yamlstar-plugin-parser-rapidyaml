@@ -32,10 +32,10 @@ jobs:
         ref: ${{ vars.YAMLSTAR_REF || 'parser-rapidyaml' }}
         path: repos/yamlstar
     - name: Build YAMLStar
-      run: make -C repos/yamlstar build-cli build-libyamlstar
+      run: make -C repos/yamlstar cli build-libyamlstar
     - name: Test CLI
       run: |
-        YAMLSTAR_TEST_BINARY_PLUGIN="$PWD/lib" YAMLSTAR_TEST_PARSER=rapidyaml \
+        YAMLSTAR_TEST_PLUGIN="$PWD/lib" \
           make -C repos/yamlstar test-unit test=test/shared-parser.t
     - name: Test Python wheel discovery
       run: |

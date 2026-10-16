@@ -183,7 +183,7 @@ jobs:
     - name: Test packaged library
       run: |
         platform=${{ matrix.platform }}
-        name="yamlstar-plugin-rapidyaml-$VERSION-$platform.tar.xz"
+        name="yamlstar-plugin-parser-rapidyaml-$VERSION-$platform.tar.xz"
         archive="release-artifact/$name"
         wheel=$(find release-artifact -maxdepth 1 -name '*.whl')
         make test-archive \
@@ -223,7 +223,7 @@ jobs:
     - name: Test packaged library
       run: |
         platform=${{ matrix.platform }}
-        name="yamlstar-plugin-rapidyaml-$VERSION-$platform.tar.xz"
+        name="yamlstar-plugin-parser-rapidyaml-$VERSION-$platform.tar.xz"
         archive="release-artifact/$name"
         wheel=$(find release-artifact -maxdepth 1 -name '*.whl')
         make test-archive \

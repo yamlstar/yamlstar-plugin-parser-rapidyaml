@@ -15,9 +15,9 @@ def _library_filename():
     extension = 'so'
   else:
     raise RuntimeError(
-      "Unsupported platform '%s' for yamlstar-plugin-rapidyaml" %
+      "Unsupported platform '%s' for yamlstar-plugin-parser-rapidyaml" %
       sys.platform)
-  return 'libyamlstar-plugin-rapidyaml.%s' % extension
+  return 'libyamlstar-plugin-parser-rapidyaml.%s' % extension
 
 
 def library_path():
