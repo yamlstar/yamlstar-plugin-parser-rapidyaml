@@ -91,6 +91,9 @@ Assertions are disabled in all builds; parse-error handling remains enabled.
 
 ## Release
 
+See [Releasing.md](Releasing.md) for PyPI trusted-publisher setup and
+recovery from a failed wheel publication.
+
 ```bash
 make dist
 make wheel
