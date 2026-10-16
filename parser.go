@@ -1,6 +1,7 @@
 package main
 
 /*
+#cgo CXXFLAGS: -DNDEBUG
 #cgo CXXFLAGS: -std=c++11 -fvisibility=hidden -DC4_EXCEPTIONS_ENABLED -DC4_ERROR_THROWS_EXCEPTION -I${SRCDIR}/.cache/rapidyaml/src -I${SRCDIR}/.cache/rapidyaml/src_extra -I${SRCDIR}/.cache/rapidyaml/ext/c4core.src
 #cgo linux LDFLAGS: -lstdc++
 #cgo darwin LDFLAGS: -lc++
