@@ -18,11 +18,21 @@ jobs:
     steps:
     - uses: actions/checkout@v5
     - name: Test plugin and conformance
-      run: make test test-conformance fuzz
+      run: make test test-conformance fuzz test-goyaml test-goyaml-race
     - name: Check release preview
       run: |
         version=$(perl -ne 'print "$1" if /:version "([^\"]+)"/' plugin.edn)
         make release v="$version" d=1
+    - name: Check out go-yaml host
+      uses: actions/checkout@v5
+      with:
+        repository: yaml/go-yaml
+        ref: 32734c39dedb70116a90a5d59e26580a3e7bf71f
+        path: repos/go-yaml
+    - name: Test generic go-yaml CLI build
+      env:
+        GO_YAML_DIR: repos/go-yaml
+      run: make test-goyaml-cli
     - name: Install macOS archive dependencies
       if: runner.os == 'macOS'
       run: |
@@ -34,7 +44,7 @@ jobs:
       uses: actions/checkout@v5
       with:
         repository: yaml/yamlstar
-        ref: ${{ vars.YAMLSTAR_REF || 'parser-rapidyaml' }}
+        ref: ${{ vars.YAMLSTAR_REF || '28f8d7b77ce3ae12d3b91cecc46c4f0b15d77b61' }}
         path: repos/yamlstar
     - name: Build YAMLStar
       run: make -C repos/yamlstar cli build-libyamlstar

@@ -48,6 +48,11 @@ jobs:
           echo "Tag $VERSION does not point to checkout HEAD" >&2
           exit 1
         fi
+        if [[ $(git rev-parse "v$VERSION^{commit}") != \
+              $(git rev-parse HEAD) ]]; then
+          echo "Go tag v$VERSION does not point to checkout HEAD" >&2
+          exit 1
+        fi
         manifest_version=$(
           perl -ne 'print "$1\n" if /:version "([^"]+)"/' plugin.edn
         )
@@ -67,7 +72,7 @@ jobs:
         fi
 
     - name: Test source and conformance
-      run: make test test-conformance fuzz
+      run: make test test-conformance fuzz test-goyaml test-goyaml-race
 
   build-linux:
     name: Build ${{ matrix.platform }}

@@ -30,7 +30,7 @@ include $M/shell.mk
 PYTHON-VENV-SETUP := \
   $(UV) pip install --python $(PYTHON-VENV) setuptools wheel
 
-VERSION := 0.1.1
+VERSION := 0.1.2
 MODULE := github.com/yamlstar/yamlstar-plugin-parser-rapidyaml
 PLUGIN := yamlstar-plugin-parser-rapidyaml
 LIB-NAME := lib$(PLUGIN).$(SO)
@@ -101,11 +101,23 @@ default:: build
 
 build: $(LIB)
 
-test: $(LIB) $(SHELLCHECK)
+test: $(LIB) $(SHELLCHECK) $(PERL)
 	$(GO) test ./...
 	$(call compile-abi-test,.cache/abi-test)
 	YAMLSTAR_LIBRARY_PATH=$(abspath lib) .cache/abi-test
-	$(SHELLCHECK) util/release util/test-archive util/fetch-rapidyaml
+	$(SHELLCHECK) util/release util/test-release util/test-goyaml-cli \
+	  util/test-archive util/fetch-rapidyaml
+	PERL=$(PERL-LOCAL)/bin/perl util/test-release
+
+test-goyaml: $(LIB)
+	CGO_ENABLED=0 $(GO) test ./goyaml
+
+test-goyaml-race: $(LIB)
+	CGO_ENABLED=1 $(GO) test -race ./goyaml
+
+test-goyaml-cli: $(LIB) $(GO) $(PERL) $(PYTHON)
+	GO=$(GO) PERL=$(PERL-LOCAL)/bin/perl PYTHON=$(PYTHON) \
+	  util/test-goyaml-cli
 
 benchmark: $(LIB)
 	$(GO) test -run '^$$' -bench . -count=7
