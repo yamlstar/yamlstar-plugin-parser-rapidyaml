@@ -30,13 +30,26 @@ include $M/shell.mk
 PYTHON-VENV-SETUP := \
   $(UV) pip install --python $(PYTHON-VENV) setuptools wheel
 
-VERSION := 0.1.2
+VERSION := 0.1.3
 MODULE := github.com/yamlstar/yamlstar-plugin-parser-rapidyaml
 PLUGIN := yamlstar-plugin-parser-rapidyaml
 LIB-NAME := lib$(PLUGIN).$(SO)
 LIB := lib/$(LIB-NAME)
 RELEASE_LIB_DIR := .cache/release/lib
 RELEASE_LIB := $(RELEASE_LIB_DIR)/$(LIB-NAME)
+NATIVE-SOURCES := plugin.cpp rymlshim.cpp rymlshim.h include/yamlstar_plugin.h
+NATIVE-MANIFEST := .cache/native-manifest.h
+NATIVE-CXXFLAGS := -std=c++11 -DNDEBUG -fPIC -fvisibility=hidden \
+  -DC4_EXCEPTIONS_ENABLED -DC4_ERROR_THROWS_EXCEPTION \
+  -I.cache/rapidyaml/src -I.cache/rapidyaml/src_extra \
+  -I.cache/rapidyaml/ext/c4core.src
+ifeq ($(IS-MACOS),true)
+# Match the existing wheel deployment targets for each macOS architecture.
+NATIVE-CXXFLAGS += -mmacosx-version-min=$(if $(IS-INTEL),15.0,14.0)
+NATIVE-LDFLAGS := -dynamiclib -Wl,-install_name,@rpath/$(LIB-NAME)
+else
+NATIVE-LDFLAGS := -shared -pthread
+endif
 WHEEL-PACKAGE := yamlstar_plugin_parser_rapidyaml
 WHEEL-PACKAGE-DIR := python/lib/$(WHEEL-PACKAGE)
 WHEEL-LIB-DIR := $(WHEEL-PACKAGE-DIR)/lib
@@ -101,7 +114,7 @@ default:: build
 
 build: $(LIB)
 
-test: $(LIB) $(SHELLCHECK) $(PERL)
+test: $(LIB) $(GO) $(SHELLCHECK) $(PERL)
 	$(GO) test ./...
 	$(call compile-abi-test,.cache/abi-test)
 	YAMLSTAR_LIBRARY_PATH=$(abspath lib) .cache/abi-test
@@ -109,17 +122,17 @@ test: $(LIB) $(SHELLCHECK) $(PERL)
 	  util/test-archive util/fetch-rapidyaml
 	PERL=$(PERL-LOCAL)/bin/perl util/test-release
 
-test-goyaml: $(LIB)
+test-goyaml: $(LIB) $(GO)
 	CGO_ENABLED=0 $(GO) test ./goyaml
 
-test-goyaml-race: $(LIB)
+test-goyaml-race: $(LIB) $(GO)
 	CGO_ENABLED=1 $(GO) test -race ./goyaml
 
 test-goyaml-cli: $(LIB) $(GO) $(PERL) $(PYTHON)
 	GO=$(GO) PERL=$(PERL-LOCAL)/bin/perl PYTHON=$(PYTHON) \
 	  util/test-goyaml-cli
 
-benchmark: $(LIB)
+benchmark: $(LIB) $(GO)
 	$(GO) test -run '^$$' -bench . -count=7
 
 wheel: dist
@@ -319,16 +332,21 @@ RAPIDYAML-COMMIT := f8ac8dd50f4f7916579d55a05ebf9c6488e52670
 .cache/rapidyaml/.pinned: util/fetch-rapidyaml Makefile
 	bash util/fetch-rapidyaml $(RAPIDYAML-COMMIT)
 
-$(LIB): .cache/rapidyaml/.pinned $(filter-out %_test.go,$(wildcard *.go)) rymlshim.cpp rymlshim.h \
-  plugin.edn go.mod go.sum $(GO)
+$(NATIVE-MANIFEST): plugin.edn Makefile $(PERL)
 	@mkdir -p $(dir $@)
-	CGO_ENABLED=1 $(GO) build -buildmode=c-shared -o $@ .
+	$(PERL) -0777 -ne \
+	  'print qq{static const char plugin_manifest[] = R"YS(}, $$_, qq{)YS";\n}' \
+	  $< > $@
 
-$(RELEASE_LIB): .cache/rapidyaml/.pinned $(filter-out %_test.go,$(wildcard *.go)) rymlshim.cpp \
-  rymlshim.h plugin.edn go.mod go.sum $(GO)
+$(LIB): .cache/rapidyaml/.pinned $(NATIVE-SOURCES) $(NATIVE-MANIFEST)
 	@mkdir -p $(dir $@)
-	CGO_ENABLED=1 $(GO) build -trimpath -ldflags='-s -w' \
-	  -buildmode=c-shared -o $@ .
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(NATIVE-CXXFLAGS) -O2 \
+	  $(NATIVE-LDFLAGS) -o $@ plugin.cpp rymlshim.cpp $(LDFLAGS)
+
+$(RELEASE_LIB): .cache/rapidyaml/.pinned $(NATIVE-SOURCES) $(NATIVE-MANIFEST)
+	@mkdir -p $(dir $@)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(NATIVE-CXXFLAGS) -O2 \
+	  $(NATIVE-LDFLAGS) -o $@ plugin.cpp rymlshim.cpp $(LDFLAGS)
 
 define compile-abi-test
 	$(CC) -Wall -Wextra -Werror -Iinclude \
@@ -337,7 +355,7 @@ define compile-abi-test
 	  test/abi.c $(if $(IS-MACOS),,-ldl) -pthread -o $(1)
 endef
 
-format:
+format: $(GO)
 	$(GO) fmt ./...
 
 install: $(LIB)
@@ -354,9 +372,9 @@ YAML-TEST-SUITE-COMMIT := 6ad3d2c62885d82fc349026c136ef560838fdf3d
 	git -C .cache/yaml-test-suite checkout $(YAML-TEST-SUITE-COMMIT)
 	touch $@
 
-test-conformance: $(LIB) .cache/yaml-test-suite/.pinned
+test-conformance: $(LIB) $(GO) .cache/yaml-test-suite/.pinned
 	YAMLSTAR_TEST_SUITE_DIR=.cache/yaml-test-suite \
 	  $(GO) test -run TestConformance -v
 
-fuzz: $(LIB)
+fuzz: $(LIB) $(GO)
 	$(GO) test -run '^$$' -fuzz FuzzParse -fuzztime=10s -parallel=2

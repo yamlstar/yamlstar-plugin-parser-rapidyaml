@@ -117,6 +117,7 @@ func FuzzParse(f *testing.F) {
 		if len(input) > 100000 {
 			t.Skip()
 		}
+		checkNativeParity(t, input, "{}")
 		data, err := parseBinary(input, "{}")
 		if err == nil {
 			if err = events.Decode(data, func(events.Event) error { return nil }); err != nil {

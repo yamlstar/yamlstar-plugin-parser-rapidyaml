@@ -1,8 +1,12 @@
 # YAMLStar RapidYAML Parser
 
-An optional RapidYAML parser for YAMLStar, implemented with Go and C++.
+An optional RapidYAML parser for YAMLStar and go-yaml.
+The shared library is implemented entirely in C++ and embeds no Go runtime.
 The plugin implements ABI v2 transforms returning EDN parser events.
 It contains no Glojure runtime.
+The Go adapter uses purego to load its C ABI without cgo.
+Versions through 0.1.2 embedded Go and could crash when loaded by Go hosts
+on Intel macOS; use 0.1.3 or newer.
 It requires a YAMLStar host with the `parser=rapidyaml` ABI v2 registration.
 Release 0.1.0 used ABI v1 and cannot be loaded by the new host.
 
@@ -28,12 +32,18 @@ make benchmark
 ```
 
 Makes installs project tools into `.cache`.
-A platform C/C++ compiler is required for cgo (GCC on Linux, Clang on macOS).
+Building the native library requires a C++11 compiler, using GCC on Linux
+or Clang on macOS.
+Go is needed for the adapter and test suite, including the cgo test oracle.
 Run project-dependent commands with `make shell CMD='...'`.
 The build pins rapidyaml v0.16.0 at
 `f8ac8dd50f4f7916579d55a05ebf9c6488e52670`.
 This checkout includes the c4core v0.6.0 source snapshot; it has no submodules.
-The Go encoder is `yaml-events-binary-protocol v0.1.0`.
+The C++ wrapper converts RapidYAML integer events directly to ABI v2 EDN.
+The previous Go/YEBP v1 conversion is retained as a differential test oracle.
+Tests compare native event bytes and error classifications against that oracle
+for the pinned YAML test suite without changing its expected results.
+Adapter and archive tests reject libraries containing a Go runtime.
 
 ## go-yaml integration
 
@@ -88,12 +98,12 @@ Missing libraries are installed into the first writable search directory.
 Select another directory with `YAMLSTAR_LIBRARY_PATH` when an incompatible
 library already exists.
 
-After publishing the native `0.1.2` release assets and Go module tag `v0.1.2`,
+After publishing the native `0.1.3` release assets and Go module tag `v0.1.3`,
 build a go-yaml CLI once:
 
 ```bash
 make cli \
-  PLUGIN-PACKAGE=github.com/yamlstar/yamlstar-plugin-parser-rapidyaml/goyaml@v0.1.2
+  PLUGIN-PACKAGE=github.com/yamlstar/yamlstar-plugin-parser-rapidyaml/goyaml@v0.1.3
 ./go-yaml --plugin=yaml-parser=rapidyaml -j < input.yaml
 ./go-yaml --plugin=yaml-parser=go-yaml -j < input.yaml
 ```
@@ -190,8 +200,8 @@ recovery from a failed wheel publication.
 make dist
 make wheel
 make test-wheel
-make release v=0.1.2 d=1
-make release v=0.1.2
+make release v=0.1.3 d=1
+make release v=0.1.3
 ```
 
 Release archives use

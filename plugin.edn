@@ -1,6 +1,6 @@
 {:abi 2
  :api "parser"
  :name "rapidyaml"
- :version "0.1.2"
+ :version "0.1.3"
  :kind "event-source"
  :event-format "yamlstar-events-edn-v1"}

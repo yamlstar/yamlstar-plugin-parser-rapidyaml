@@ -11,7 +11,7 @@
 #endif
 
 #ifndef PLUGIN_VERSION
-#define PLUGIN_VERSION "0.1.2"
+#define PLUGIN_VERSION "0.1.3"
 #endif
 
 typedef uint64_t (*abi_fn)(void);
@@ -115,6 +115,9 @@ int main(void) {
     if (dlsym(handle, "yamlstar_plugin_v1_parse_binary") != NULL) {
         fail("plugin still exports ABI v1 parsing");
     }
+    if (dlsym(handle, "crosscall2") != NULL) {
+        fail("plugin still embeds a Go runtime");
+    }
     if (abi() != 2) {
         fail("plugin ABI version is not 2");
     }
@@ -134,6 +137,10 @@ int main(void) {
         fail("manifest version is incorrect");
     }
     free(manifest_text);
+    if (manifest(NULL, &manifest_length) != 2
+        || manifest(&manifest_output, NULL) != 2) {
+        fail("manifest accepted a null output pointer");
+    }
 
     int32_t status;
     char *output = parse(
@@ -157,6 +164,22 @@ int main(void) {
     status = api.transform(NULL, 1, NULL, 0, &bad_output, &bad_length);
     if (status != 2) {
         fail("binary ABI accepted a nil input with nonzero length");
+    }
+    api.free_output(bad_output);
+
+    static const uint8_t invalid_utf8[] = {0xff};
+    status = api.transform(invalid_utf8, sizeof(invalid_utf8), NULL, 0,
+                           &bad_output, &bad_length);
+    if (status != 1) {
+        fail("invalid UTF-8 did not return a parse error");
+    }
+    api.free_output(bad_output);
+    static const char unknown_options[] = "{:unknown true}";
+    status = api.transform(NULL, 0, (const uint8_t *)unknown_options,
+                           sizeof(unknown_options) - 1,
+                           &bad_output, &bad_length);
+    if (status != 1) {
+        fail("unknown options did not return a configuration error");
     }
     api.free_output(bad_output);
 

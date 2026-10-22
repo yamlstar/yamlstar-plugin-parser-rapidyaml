@@ -1,6 +1,7 @@
 package goyaml
 
 import (
+	"debug/buildinfo"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -12,6 +13,26 @@ import (
 	"go.yaml.in/yaml/v4"
 	"go.yaml.in/yaml/v4/plugin/loaderlimits"
 )
+
+func TestLibraryWithoutGoRuntime(t *testing.T) {
+	path := filepath.Join("..", "lib", libraryFilename())
+	if _, err := os.Stat(path); err != nil {
+		t.Fatal(err)
+	}
+	if info, err := buildinfo.ReadFile(path); err == nil {
+		t.Fatalf("native library still embeds Go: %s", info.GoVersion)
+	}
+}
+
+func TestProfiledConcurrency(t *testing.T) {
+	// Heap sampling exposed the macOS crash in the Go-built shared library.
+	// A subprocess applies the setting before any native library is loaded.
+	t.Setenv("GODEBUG", "memprofilerate=1")
+	command := exec.Command(os.Args[0], "-test.run=^TestConcurrentLoads$")
+	if output, err := command.CombinedOutput(); err != nil {
+		t.Fatalf("profiled native calls: %v\n%s", err, output)
+	}
+}
 
 func useTestLibrary(t *testing.T) {
 	t.Helper()

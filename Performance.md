@@ -1,5 +1,9 @@
 # Initial performance measurements
 
+These historical measurements describe the Go-based wrapper used through
+version 0.1.2.
+They do not measure the C++ shared library introduced in 0.1.3.
+
 Measured on Linux x64, Intel Core i7-1365U, September 10, 2026.
 The plugin uses Go 1.27.1, rapidyaml v0.16.0, and YEBP v1.
 The host is the locally built Glojure YAMLStar CLI on `parser-rapidyaml`.

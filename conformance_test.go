@@ -97,6 +97,7 @@ func TestConformance(t *testing.T) {
 		if err != nil {
 			return err
 		}
+		checkNativeParity(t, string(input), "{}")
 		_, invalid := os.Stat(filepath.Join(dir, "error"))
 		data, parseErr := parseBinary(string(input), "{}")
 		outcome := ""
