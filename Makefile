@@ -30,7 +30,7 @@ include $M/shell.mk
 PYTHON-VENV-SETUP := \
   $(UV) pip install --python $(PYTHON-VENV) setuptools wheel
 
-VERSION := 0.1.3
+VERSION := 0.1.4
 MODULE := github.com/yamlstar/yamlstar-plugin-parser-rapidyaml
 PLUGIN := yamlstar-plugin-parser-rapidyaml
 LIB-NAME := lib$(PLUGIN).$(SO)
