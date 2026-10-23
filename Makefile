@@ -209,6 +209,7 @@ release-linux: | $(DOCKER)
 	    dnf install -y binutils curl file gcc gcc-c++ git make perl unzip xz >/dev/null; \
 	    git config --global --add safe.directory /work; \
 	    git config --global --add safe.directory /work/.cache/makes; \
+	    git config --global --add safe.directory /work/.cache/rapidyaml; \
 	    make release-archive \
 	      VERSION="$$VERSION" \
 	      RELEASE_PLATFORM="$$RELEASE_PLATFORM" \
@@ -332,9 +333,10 @@ RAPIDYAML-COMMIT := f8ac8dd50f4f7916579d55a05ebf9c6488e52670
 .cache/rapidyaml/.pinned: util/fetch-rapidyaml Makefile
 	bash util/fetch-rapidyaml $(RAPIDYAML-COMMIT)
 
+# Use Perl directly because the host's bin/perl symlink is invalid in Docker.
 $(NATIVE-MANIFEST): plugin.edn Makefile $(PERL)
 	@mkdir -p $(dir $@)
-	$(PERL) -0777 -ne \
+	$(PERL-LOCAL)/bin/perl -0777 -ne \
 	  'print qq{static const char plugin_manifest[] = R"YS(}, $$_, qq{)YS";\n}' \
 	  $< > $@
 
