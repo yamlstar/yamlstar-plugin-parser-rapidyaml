@@ -11,7 +11,7 @@
 #endif
 
 #ifndef PLUGIN_VERSION
-#define PLUGIN_VERSION "0.1.4"
+#define PLUGIN_VERSION "0.1.5"
 #endif
 
 typedef uint64_t (*abi_fn)(void);

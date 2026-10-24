@@ -17,7 +17,7 @@ type library struct {
 }
 
 // Version is both the adapter release and its required native library version.
-const Version = "0.1.4"
+const Version = "0.1.5"
 
 // Option configures a RapidYAML parser.
 type Option func(*Plugin)
