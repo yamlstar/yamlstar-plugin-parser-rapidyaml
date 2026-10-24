@@ -388,7 +388,7 @@ func TestManifestVersion(t *testing.T) {
 	}
 	for _, pair := range [][2]string{
 		{Version, "0.0.1"}, {":abi 2", ":abi 1"},
-		{`"parser"`, `"yaml-parser"`}, {`"rapidyaml"`, `"other"`},
+		{`"yaml-parser"`, `"parser"`}, {`"rapidyaml"`, `"other"`},
 	} {
 		changed := bytes.ReplaceAll(data, []byte(pair[0]), []byte(pair[1]))
 		if _, err := validateManifest(changed); err == nil {

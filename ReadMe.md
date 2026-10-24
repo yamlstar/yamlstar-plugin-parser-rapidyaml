@@ -7,14 +7,17 @@ It contains no Glojure runtime.
 The Go adapter uses purego to load its C ABI without cgo.
 Versions through 0.1.2 embedded Go and could crash when loaded by Go hosts
 on Intel macOS; use 0.1.3 or newer.
-It requires a YAMLStar host with the `parser=rapidyaml` ABI v2 registration.
+It requires a YAMLStar host with the `yaml-parser=rapidyaml` ABI v2 registration.
 Release 0.1.0 used ABI v1 and cannot be loaded by the new host.
+The shared manifest now declares `:api "yaml-parser"`.
+Hosts and adapters requiring that name reject older `:api "parser"`
+libraries; rebuild or install an updated library together with the host.
 
 ```bash
-yaml --plugin=parser=rapidyaml
+yaml --plugin=yaml-parser=rapidyaml
 ```
 
-The implementation name is `rapidyaml` and the plugin API is `parser`.
+The implementation name is `rapidyaml` and the plugin API is `yaml-parser`.
 The repository and Python distribution are `yamlstar-plugin-parser-rapidyaml`.
 Libraries use `libyamlstar-plugin-parser-rapidyaml.so` on Linux and
 `.dylib` on macOS.
@@ -129,7 +132,7 @@ To try a local build from this directory:
 
 ```bash
 make build
-YAMLSTAR_LIBRARY_PATH="$PWD/lib" yaml --plugin=parser=rapidyaml --no-install \
+YAMLSTAR_LIBRARY_PATH="$PWD/lib" yaml --plugin=yaml-parser=rapidyaml --no-install \
   --eval 'a: [1, 2, 3]'
 ```
 

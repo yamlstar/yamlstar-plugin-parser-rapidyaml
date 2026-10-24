@@ -129,7 +129,7 @@ int main(void) {
     }
     char *manifest_text = take_output(
         &api, manifest_output, manifest_length);
-    if (strstr(manifest_text, ":api \"parser\"") == NULL) {
+    if (strstr(manifest_text, ":api \"yaml-parser\"") == NULL) {
         fail("manifest API is incorrect");
     }
     if (strstr(manifest_text, ":version \"" PLUGIN_VERSION "\"")

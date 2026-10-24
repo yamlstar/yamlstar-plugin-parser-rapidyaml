@@ -1,5 +1,5 @@
 {:abi 2
- :api "parser"
+ :api "yaml-parser"
  :name "rapidyaml"
  :version "0.1.4"
  :kind "event-source"

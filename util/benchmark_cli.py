@@ -31,7 +31,7 @@ for name, text in fixtures.items():
     for implementation in names:
       start = time.perf_counter()
       run = subprocess.run(
-        [args.cli, '--plugin=parser=' + implementation, '--no-install'],
+        [args.cli, '--plugin=yaml-parser=' + implementation, '--no-install'],
         input=text.encode(), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         check=True, env=env)
       elapsed = time.perf_counter() - start

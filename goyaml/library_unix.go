@@ -132,8 +132,9 @@ func validateManifest(data []byte) (string, error) {
 	if err := edn.Unmarshal(data, &info); err != nil {
 		return "", fmt.Errorf("rapidyaml manifest: %w", err)
 	}
-	if info.ABI != 2 || info.API != "parser" || info.Name != "rapidyaml" ||
-		info.Kind != "event-source" || info.EventFormat != "yamlstar-events-edn-v1" ||
+	if info.ABI != 2 || info.API != "yaml-parser" ||
+		info.Name != "rapidyaml" || info.Kind != "event-source" ||
+		info.EventFormat != "yamlstar-events-edn-v1" ||
 		info.Version == "" {
 		return "", fmt.Errorf("incompatible rapidyaml manifest: %s", data)
 	}
